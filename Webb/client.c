@@ -1,43 +1,46 @@
-#include <sys/types.h>
-#include <sys/fcntl.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 #include <netdb.h>
-#include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
+#include <string.h>
 
+#include <unistd.h>
+#include <arpa/inet.h>
 // Client 
 
+#define IP_ADDR "192.168.86.103"
 
 int main(int argc, char **argv)
 {
-    if (argc != 2) {printf("specify port\n"); exit(0);}
-    int port = atoi(argv[1]);
-    const int bufferSize = 1024;
-    char buffer[bufferSize];
-
-    int sockfd = socket(PF_INET, SOCK_DGRAM, 0);
-
-
-    struct sockaddr_in serverAddr; // ip4 addr
-    memset(&serverAddr, '\0', sizeof(serverAddr)); // ???
-    serverAddr.sin_family=AF_INET;
-    serverAddr.sin_port=htons(port);
-    inet_pton(AF_INET, "192.168.86.103", &serverAddr.sin_addr);
-
-    strcpy(buffer, "He110 w0r1d\n");
-    sendto(sockfd, buffer, bufferSize, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
-
-    printf("Send: %s", buffer);
+    struct sockaddr_in serverAddr;
+    int sd;
+    int server_port = 2009;
     
-    socklen_t addr_size = sizeof(serverAddr);
-    recvfrom(sockfd, buffer, bufferSize, 0, (struct sockaddr*)&serverAddr, &addr_size);
+    printf("creating sockets (port: %d)...\n", server_port);
 
-    printf("Recv: %s", buffer); 
+    // create socket
+    sd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
+    // fill addr struct
+    memset(&serverAddr, 0, sizeof(struct sockaddr_in));
+    serverAddr.sin_family = AF_INET;
+    inet_pton(AF_INET, IP_ADDR, &serverAddr.sin_addr);
+    serverAddr.sin_port = htons(server_port);
+
+    printf("connecting...\n");
     
+    connect(sd, (struct sockaddr*)&serverAddr, sizeof(struct sockaddr_in));
 
+    const int bufferSize = 13;
+    char buf[bufferSize];
+    printf("writing data...\n");
+    write(sd, "Hello world!", bufferSize-1);
+    printf("reading data...\n");
+    read(sd, buf, bufferSize-1);
+    buf[bufferSize-1] = 0;
+    printf("recived: %s\n", buf);
+
+    printf("closing socket");
+    close(sd);
     return 0;
 }
