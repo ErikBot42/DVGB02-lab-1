@@ -18,6 +18,12 @@ bool prefix(const char *pre, const char *str)
     return strncmp(pre, str, strlen(pre)) == 0;
 }
 
+void writeAndPrint(int fd, const void *buf, size_t count)
+{
+    printf("%.*s",count,buf);
+    write(fd, buf, count);
+}
+
 void pln(char * string)
 {
     printf("%s\n", string);
@@ -48,40 +54,82 @@ int main(int argc, char *argv[])
     /* Socket is now set up and bound. Wait for connection and process it. */ 
     while (1) {
         char buf[BUF_SIZE]; // Store client request
+        pln("---------------------------------");
         pln("waiting for connection request...");
+        pln("");
+        pln("");
+
         int sa = accept(s, 0, 0);               // block for connection request 
         if (sa < 0) {pln("accept failed"); continue;}
         read(sa, buf, BUF_SIZE);            // read request from socket 
         pln("Recived request:\n");
         pln(buf);
-
-
-        char * requestMethod = strtok(buf, " ");
+        
+        // required responses:
+        // 200 - OK, send file
+        // 404 - not found
+        
+        // TODO: check 404
+        char * requestMethod = strtok(buf, " \n");
         if (requestMethod == NULL) {pln("requestMethod invalid"); continue;}
         printf("Request method: %s\n", requestMethod);
 
-        char * requestedFile = strtok(NULL, " ");
+        char * requestedFile = strtok(NULL, " \n");
         if (requestedFile == NULL) {pln("requestedFile invalid"); continue;}
         printf("Request file: %s\n", requestedFile);
 
-        char * httpVersion = strtok(NULL, " ");
+        char * httpVersion = strtok(NULL, " \n");
         if (httpVersion == NULL) {pln("httpVersion invalid"); continue;}
         printf("HTTP version: %s\n", httpVersion);
 
+        // assume http version is ok.
+        pln("response:"); 
+        writeAndPrint(sa, httpVersion, strlen(httpVersion));
+        FILE *fp = fopen(requestedFile+1, "r"); // +1 to remove /
+        if (fp == NULL)
+        {
+            char * notfound = " 404 Not Found\n";
+            writeAndPrint(sa, notfound, strlen(notfound));
+            pln("cannot open requested file");
+        }
+        else
+        {
+            char * sResponse  = (char*)malloc(1048576);//1M
 
 
-        exit(1);
 
+            fseek(fp, 0, SEEK_END);
+            long fileLength = ftell(fp);
+            fseek(fp, 0, SEEK_SET);
+            char * buffer = (char *)malloc(fileLength);
+            fread(buffer, 1, fileLength, fp);
+
+            //    " 200 OK\n";
+            //write(sa, sResponse, strlen(sResponse)-1);
+            //sResponse = "Server: A web server\n";
+            //write(sa, sResponse, strlen(sResponse)-1);
+            //sResponse = "Content-Length: ";
+            //write(sa, sResponse, strlen(sResponse)-1);
+            //
+            sprintf(sResponse, " 200 OK\nServer: A Web Server\nContent-Length: %d\nContent-Type: text/html\n", fileLength);
+
+            writeAndPrint(sa, sResponse, strlen(sResponse));
+            writeAndPrint(sa, buffer, fileLength);
         
+            free(buffer);
+            free(sResponse);
+
+        }
         /* Get and return the file. */
-        int fd = open(buf, O_RDONLY);           /* open the file to be sent back */
+#if 0
         if (fd < 0) fatal("open failed");
         while (1) {
             int bytes = read(fd, buf, BUF_SIZE); /* read from file */
             if (bytes <= 0) break;          /* check for end of file */
             write(sa, buf, bytes);          /* write bytes to socket */
         }
-        close(fd);                          /* close file */
+#endif
+        fclose(fp);
         close(sa);                          /* close connection */
     }
 }
