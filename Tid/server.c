@@ -5,19 +5,16 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 // Server
 
-int main(int argc, char **argv)
+
+int main()
 {
-	int main(int argc, char **argv)
-{
-	if (argc != 2)
-	{
-		print("Usage: %s <port>", argv[0]);
-	}
 	
-	int port = atoi([argv[1]);
+	
+	int port = 37;
 	struct sockaddr_in si_me, si_other;
 	char buffer[1024];
 	socklen_t addr_size;
@@ -25,8 +22,8 @@ int main(int argc, char **argv)
 	int sd = socket(AF_INET, SOCK_DGRAM, 0);
 	
 	time_t mytime = time(NULL);
-    	char * time_str = ctime(&mytime);
-   	time_str[strlen(time_str)-1] = '\0';
+    	/*char * time_str = ctime(&mytime);
+   	time_str[strlen(time_str)-1] = '\0';*/
     	
     	/*
 	time_t currentTime;
@@ -36,7 +33,7 @@ int main(int argc, char **argv)
 	timeInfo = localtime(&rawtime);
 	sentTime[0] = asctime(timeInfo); */
 	
-	memset(&si_me, '\0', sizeof(si_me);
+	memset(&si_me, '\0', sizeof(si_me));
 	si_me.sin_family = AF_INET;
 	si_me.sin_port = htons(port);
 	si_me.sin_addr.s_addr = INADDR_ANY;
@@ -48,8 +45,10 @@ int main(int argc, char **argv)
 	addr_size = sizeof(si_other);
 	recvfrom(sd, buffer, 1024, 0, (struct sockaddr*)&si_other, &addr_size);
 	printf("[+]Data received");
-	sendto(sd, buffer, 1024, 0, (struct sockaddr*)&si_other, &addr_size);
-	printf("[+]Data send: %s", buffer);
+	/*sendto(sd, mytime, 1024, 0, (struct sockaddr*)&si_other, &addr_size);*/
+	sendto(sd, mytime, 
+	/*sendto(sd, buffer, 1024, 0, (struct sockaddr*)&si_other, &addr_size);*/
+	printf("[+]Data send: %s", mytime /*buffer*/);
 	
 	/*
     struct sockaddr_in serverAddr;
@@ -98,6 +97,6 @@ int main(int argc, char **argv)
     close(sd);
     close(request_sd);
     
-
+	return 0;
 
 }
