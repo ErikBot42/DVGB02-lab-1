@@ -13,12 +13,16 @@
 
 int main(int argc, char ** argv)
 {
+    int port = 37;
     if (argc != 2) {
-        printf("Usage %s <port>", argv[0]);
-        exit(0);
+        printf("Port not defined\n", port);
     }	
+    else
+    {
+	    port = atoi(argv[1]);
+    }
+    printf("Using port %d\n", port);
 	
-	int port = atoi(argv[1]);
 	struct sockaddr_in si_me, si_other;
     int buffersize = 0;
 	char buffer[buffersize];
@@ -35,11 +39,11 @@ int main(int argc, char ** argv)
 
 
         bind(sockfd, (struct sockaddr*)&si_me, sizeof(si_me));
-        printf("[+]Socket bound to server address\n");
+        printf("Socket bound to server address\n");
         addr_size = sizeof(si_other);
 
         recvfrom(sockfd, buffer, buffersize, 0, (struct sockaddr*)&si_other, &addr_size); // receive EMPTY datagram
-        printf("[+]Data received: %s\n", buffer);
+        printf("Data received: %s\n", buffer);
 
         time_t current_time = time(NULL);
         printf("Current time in HEX is %d(%X)\n", current_time, current_time);
