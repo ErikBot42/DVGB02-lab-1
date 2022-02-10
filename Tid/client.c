@@ -9,41 +9,44 @@
 #include <stdlib.h>
 // Client 
 
-#define IP_ADDR "192.168.86.103"
+#define IP_ADDR "127.0.0.1"
 
-int main()
+void main(int argc, char **argv)
 {
-	/*if (argc != 2)
+	if (argc != 2)
 	{
-		print("Usage: %s <port>", argv[0]);
+		printf("Usage: %s <port>", argv[0]);
 		exit(0);
-	}*/
+	}
+	int port = atoi(argv[1]);
+    int sockfd;
 	struct sockaddr_in serverAddr;
-    	int server_port = 37;
-	int port = 37;
-	struct sockaddr_in si_me, si_other;
-	long int buffer[1024];
+    int server_port = 37;
+
+    int buffersize = 0;
+	char buffer[buffersize];
 	socklen_t addr_size;
 	
-	memset(buffer, 0, 1024);
-	
-	int sd = socket(AF_INET, SOCK_DGRAM, 0);
+	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	
 	memset(&serverAddr, '\0', sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons(port);
 	inet_pton(AF_INET, "127.0.0.1", &serverAddr.sin_addr);
-	 
-	sendto(sd, buffer, 1024, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
-	
-	printf("[+]Data send: %s", (char*)buffer);
+    
+    //strcpy(buffer, "Hello world!\n");
+    sendto(sockfd, buffer, buffersize, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+    printf("[+]Data send: %s", buffer);
+
+    time_t current_time;
 	
 	addr_size = sizeof(serverAddr);
-	recvfrom(sd, buffer, 1024, 0, (struct sockaddr*)&serverAddr, &addr_size);
-	long int time = buffer[0];
-	char * printTime = ctime(&time);
-   	printTime[strlen(printTime)-1] = '\0';
-	printf("[+]Data received: Time is %s", printTime);
+	recvfrom(sockfd, &current_time, 4, 0, (struct sockaddr*)&serverAddr, &addr_size);
+	printf("[+]Data received: %d (%X)\n", current_time, current_time);
+	printf("Current server time is: %s\n", ctime(&current_time));
+	//long int time = buffer[0];
+	//char * printTime = ctime(&time);
+   	//printTime[strlen(printTime)-1] = '\0';
 	/*
     struct sockaddr_in serverAddr;
     int server_port = 37;
@@ -61,19 +64,18 @@ int main()
 
     printf("connecting...\n");
     
-    connect(sd, (struct sockaddr*)&serverAddr, sizeof(struct sockaddr_in));
+    connect(sockfd, (struct sockaddr*)&serverAddr, sizeof(struct sockaddr_in));
 
     const int bufferSize = 13;
     char buf[bufferSize];
     printf("writing data...\n");
-    write(sd, "Hello world!", bufferSize-1);
+    write(sockfd, "Hello world!", bufferSize-1);
     printf("reading data...\n");
-    read(sd, buf, bufferSize-1);
+    read(sockfd, buf, bufferSize-1);
     buf[bufferSize-1] = 0;
     printf("recived: %s\n", buf);*/
 
     printf("closing socket");
-    close(sd);
-    return 0;
+    close(sockfd);
     
 }
