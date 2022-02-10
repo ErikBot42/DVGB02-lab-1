@@ -18,10 +18,17 @@ bool prefix(const char *pre, const char *str)
     return strncmp(pre, str, strlen(pre)) == 0;
 }
 
-void writeAndPrint(int fd, const void *buf, size_t count)
+
+const char* getFileExtension(const char *file) {
+    const char *dot = strrchr(file, '.');
+    if(!dot || dot == file) return "";
+    return dot + 1;
+}
+
+void writeAndPrint(int fd, const char *buf, size_t count, bool print)
 {
-    printf("%.*s",count,buf);
-    write(fd, buf, count);
+    if (print) printf("%.*s",(int)count,buf);
+    write(fd, (const void*)buf, count);
 }
 
 void pln(char * string)
@@ -70,31 +77,35 @@ int main(int argc, char *argv[])
         // 404 - not found
         
         // TODO: check 404
-        char * requestMethod = strtok(buf, " \n");
+        char * requestMethod = strtok(buf, " \n\r");
         if (requestMethod == NULL) {pln("requestMethod invalid"); continue;}
         printf("Request method: %s\n", requestMethod);
 
-        char * requestedFile = strtok(NULL, " \n");
+        char * requestedFile = strtok(NULL, " \n\r");
         if (requestedFile == NULL) {pln("requestedFile invalid"); continue;}
+        requestedFile+=1;// +1 to remove /
         printf("Request file: %s\n", requestedFile);
 
-        char * httpVersion = strtok(NULL, " \n");
+        char * httpVersion = strtok(NULL, " \n\r");
         if (httpVersion == NULL) {pln("httpVersion invalid"); continue;}
         printf("HTTP version: %s\n", httpVersion);
 
+
         // assume http version is ok.
         pln("response:"); 
-        writeAndPrint(sa, httpVersion, strlen(httpVersion));
-        FILE *fp = fopen(requestedFile+1, "r"); // +1 to remove /
+        fflush(stdout);
+        writeAndPrint(sa, httpVersion, strlen(httpVersion), true); fflush(stdout);
+        FILE *fp = fopen(requestedFile, "r"); 
+        char * sResponse  = (char*)malloc(1048576);//1M
         if (fp == NULL)
         {
-            char * notfound = " 404 Not Found\n";
-            writeAndPrint(sa, notfound, strlen(notfound));
-            pln("cannot open requested file");
+            sprintf(sResponse, " 404 Not Found\r\n");
+            writeAndPrint(sa, sResponse, strlen(sResponse), true);
+            pln("end");
+            pln("cannot open requested file -> sent 404");
         }
         else
         {
-            char * sResponse  = (char*)malloc(1048576);//1M
 
 
 
@@ -111,15 +122,33 @@ int main(int argc, char *argv[])
             //sResponse = "Content-Length: ";
             //write(sa, sResponse, strlen(sResponse)-1);
             //
-            sprintf(sResponse, " 200 OK\nServer: A Web Server\nContent-Length: %d\nContent-Type: text/html\n", fileLength);
+            
+            char * fileExtension = getFileExtension(requestedFile);
 
-            writeAndPrint(sa, sResponse, strlen(sResponse));
-            writeAndPrint(sa, buffer, fileLength);
+            char * contentType="text";
+            bool printContent = true;
+
+            printf("File extension: %s", fileExtension);
+            if (strcmp(fileExtension, "html")==0) 
+            {
+                contentType  = "text/html"
+            }
+            if (strcmp(fileExtension, "jpeg")==0) 
+            {
+                contentType  = "image/jpeg"
+                printContent = false
+            }
+
+            sprintf(sResponse, " 200 OK\r\nServer: A Web Server\r\nContent-Length: %ld\r\nContent-Type: %s\r\n\r\n", fileLength, contentType);
+
+            writeAndPrint(sa, sResponse, strlen(sResponse), true);
+            writeAndPrint(sa, buffer, fileLength, printContent, true);
         
             free(buffer);
-            free(sResponse);
+            fclose(fp);
 
         }
+            free(sResponse);
         /* Get and return the file. */
 #if 0
         if (fd < 0) fatal("open failed");
@@ -129,7 +158,6 @@ int main(int argc, char *argv[])
             write(sa, buf, bytes);          /* write bytes to socket */
         }
 #endif
-        fclose(fp);
         close(sa);                          /* close connection */
     }
 }
