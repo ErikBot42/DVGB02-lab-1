@@ -45,8 +45,7 @@ int main()
 	addr_size = sizeof(si_other);
 	recvfrom(sd, buffer, 1024, 0, (struct sockaddr*)&si_other, &addr_size);
 	printf("[+]Data received");
-	/*sendto(sd, mytime, 1024, 0, (struct sockaddr*)&si_other, &addr_size);*/
-	sendto(sd, mytime, 
+	sendto(sd, mytime, 1024, 0, (struct sockaddr*)&si_other, &addr_size);
 	/*sendto(sd, buffer, 1024, 0, (struct sockaddr*)&si_other, &addr_size);*/
 	printf("[+]Data send: %s", mytime /*buffer*/);
 	
