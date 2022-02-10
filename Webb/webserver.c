@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
             //write(sa, sResponse, strlen(sResponse)-1);
             //
             
-            char * fileExtension = getFileExtension(requestedFile);
+            const char * fileExtension = getFileExtension(requestedFile);
 
             char * contentType="text";
             bool printContent = true;
@@ -131,18 +131,18 @@ int main(int argc, char *argv[])
             printf("File extension: %s", fileExtension);
             if (strcmp(fileExtension, "html")==0) 
             {
-                contentType  = "text/html"
+                contentType  = "text/html";
             }
             if (strcmp(fileExtension, "jpeg")==0) 
             {
-                contentType  = "image/jpeg"
-                printContent = false
+                contentType  = "image/jpeg";
+                printContent = false;
             }
 
             sprintf(sResponse, " 200 OK\r\nServer: A Web Server\r\nContent-Length: %ld\r\nContent-Type: %s\r\n\r\n", fileLength, contentType);
 
             writeAndPrint(sa, sResponse, strlen(sResponse), true);
-            writeAndPrint(sa, buffer, fileLength, printContent, true);
+            writeAndPrint(sa, buffer, fileLength, printContent);
         
             free(buffer);
             fclose(fp);
