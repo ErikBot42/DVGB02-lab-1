@@ -1,9 +1,9 @@
 # DVGB02 lab 1
 
-# Build
+## Build
 In `/Tid` or `/Webb` run `make`
 
-# Run
+## Run
 `./server` for time server, `./client` for time client, `./webserver` for webserver.
 
 
