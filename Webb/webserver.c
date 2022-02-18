@@ -76,7 +76,6 @@ int main(int argc, char *argv[])
         // 200 - OK, send file
         // 404 - not found
         
-        // TODO: check 404
         char * requestMethod = strtok(buf, " \n\r");
         if (requestMethod == NULL) {pln("requestMethod invalid"); continue;}
         printf("Request method: %s\n", requestMethod);
@@ -90,7 +89,6 @@ int main(int argc, char *argv[])
         if (httpVersion == NULL) {pln("httpVersion invalid"); continue;}
         printf("HTTP version: %s\n", httpVersion);
 
-
         // assume http version is ok.
         pln("response:"); 
         fflush(stdout);
@@ -99,30 +97,19 @@ int main(int argc, char *argv[])
         char * sResponse  = (char*)malloc(1048576);//1M
         if (fp == NULL)
         {
-            sprintf(sResponse, " 404 Not Found\r\n");
+            sprintf(sResponse, " 404 Not Found\r\n\r\n");
             writeAndPrint(sa, sResponse, strlen(sResponse), true);
             pln("end");
             pln("cannot open requested file -> sent 404");
         }
         else
         {
-
-
-
             fseek(fp, 0, SEEK_END);
             long fileLength = ftell(fp);
             fseek(fp, 0, SEEK_SET);
             char * buffer = (char *)malloc(fileLength);
             fread(buffer, 1, fileLength, fp);
 
-            //    " 200 OK\n";
-            //write(sa, sResponse, strlen(sResponse)-1);
-            //sResponse = "Server: A web server\n";
-            //write(sa, sResponse, strlen(sResponse)-1);
-            //sResponse = "Content-Length: ";
-            //write(sa, sResponse, strlen(sResponse)-1);
-            //
-            
             const char * fileExtension = getFileExtension(requestedFile);
 
             char * contentType="text";
@@ -133,7 +120,7 @@ int main(int argc, char *argv[])
             {
                 contentType  = "text/html";
             }
-            if (strcmp(fileExtension, "jpeg")==0) 
+            if (strcmp(fileExtension, "jpg")==0) 
             {
                 contentType  = "image/jpeg";
                 printContent = false;
@@ -148,16 +135,7 @@ int main(int argc, char *argv[])
             fclose(fp);
 
         }
-            free(sResponse);
-        /* Get and return the file. */
-#if 0
-        if (fd < 0) fatal("open failed");
-        while (1) {
-            int bytes = read(fd, buf, BUF_SIZE); /* read from file */
-            if (bytes <= 0) break;          /* check for end of file */
-            write(sa, buf, bytes);          /* write bytes to socket */
-        }
-#endif
+        free(sResponse);
         close(sa);                          /* close connection */
     }
 }
